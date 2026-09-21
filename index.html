@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empório Nefertite - Gestão & PDV (Nuvem)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .product-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+        }
+    </style>
+</head>
+<body class="bg-[#f4f6f8] text-slate-800 font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- BARRA LATERAL (W-52) -->
+    <aside class="w-full md:w-52 bg-white border-r border-slate-200 flex flex-col justify-between z-20 shrink-0">
+        <div>
+            <!-- Logo -->
+            <div class="p-4 border-b border-slate-100 flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white shadow-sm">
+                    <i class="fa-solid fa-crown text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-900 text-sm leading-tight">Empório Nefertite</h1>
+                    <span class="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Nuvem Ativa
+                    </span>
+                </div>
+            </div>
+
+            <!-- Navegação -->
+            <nav class="p-2 space-y-1">
+                <button onclick="switchTab('painel')" id="nav-painel" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs transition-all bg-blue-50 text-blue-600">
+                    <i class="fa-solid fa-chart-pie text-base w-4 text-center"></i>
+                    <span>Painel</span>
+                </button>
+                <button onclick="switchTab('vendas')" id="nav-vendas" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                    <i class="fa-solid fa-cash-register text-base w-4 text-center"></i>
+                    <span>Vendas</span>
+                </button>
+                <button onclick="switchTab('estoque')" id="nav-estoque" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                    <i class="fa-solid fa-boxes-stacked text-base w-4 text-center"></i>
+                    <span>Estoque</span>
+                </button>
+                <button onclick="switchTab('clientes')" id="nav-clientes" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                    <i class="fa-solid fa-users text-base w-4 text-center"></i>
+                    <span>Clientes</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-3 border-t border-slate-100 bg-slate-50/50">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs text-slate-600">
+                    EN
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-800">Empório Nefertite</p>
+                    <p class="text-[10px] text-slate-500">Sincronizado</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ÁREA DE CONTEÚDO -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc]">
+
+        <!-- ABA 1: PAINEL -->
+        <section id="tab-painel" class="tab-content p-5 overflow-y-auto space-y-5 flex-1 custom-scrollbar">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Painel Financeiro</h2>
+                    <p class="text-xs text-slate-500">Visão geral em tempo real.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-xs font-medium text-slate-600">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="current-date">Hoje</span>
+                </div>
+            </div>
+
+            <!-- Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Faturamento Total</span>
+                    <h3 class="text-lg font-bold text-slate-900 mt-1" id="card-faturamento">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Qtd Vendas</span>
+                    <h3 class="text-lg font-bold text-slate-900 mt-1" id="card-qtd-vendas">0</h3>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Lucro Estimado</span>
+                    <h3 class="text-lg font-bold text-indigo-600 mt-1" id="card-lucro">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Patrimônio Custo</span>
+                    <h3 class="text-lg font-bold text-slate-900 mt-1" id="card-patrimonio">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pronta Entrega</span>
+                    <h3 class="text-lg font-bold text-purple-600 mt-1" id="card-pronta-entrega">R$ 0,00</h3>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-2 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <h4 class="font-bold text-xs text-slate-800 mb-3">Desempenho de Vendas</h4>
+                    <div class="h-60"><canvas id="chart-faturamento"></canvas></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <h4 class="font-bold text-xs text-slate-800 mb-3">Categorias</h4>
+                    <div class="h-60 flex items-center justify-center"><canvas id="chart-categorias"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 2: VENDAS -->
+        <section id="tab-vendas" class="tab-content hidden p-5 overflow-y-auto flex-1 custom-scrollbar space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Histórico de Vendas</h2>
+                    <p class="text-xs text-slate-500">Registro de vendas sincronizado na nuvem.</p>
+                </div>
+                <button onclick="openModalPDV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-sm"></i> Nova Venda
+                </button>
+            </div>
+
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-2.5 items-center">
+                <input type="text" id="filter-venda-search" oninput="renderTabelaVendas()" placeholder="Buscar cliente, distribuidor ou ID..." class="flex-1 min-w-[180px] border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="date" id="filter-venda-data" onchange="renderTabelaVendas()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
+                <select id="filter-venda-status" onchange="renderTabelaVendas()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
+                    <option value="">Todos Status</option>
+                    <option value="Pago">Pago</option>
+                    <option value="A Prazo">A Prazo</option>
+                </select>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Data</th>
+                                <th class="p-3">Distribuidor</th>
+                                <th class="p-3">Cliente</th>
+                                <th class="p-3 text-center">Itens</th>
+                                <th class="p-3">Valor Total</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-vendas-body" class="divide-y divide-slate-100 text-slate-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 3: ESTOQUE -->
+        <section id="tab-estoque" class="tab-content hidden p-5 overflow-y-auto flex-1 custom-scrollbar space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Gestão de Estoque</h2>
+                    <p class="text-xs text-slate-500">Controle entradas e catálogo de produtos.</p>
+                </div>
+                <button onclick="openModalEstoque()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold text-xs shadow-md transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Registrar Estoque
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Descrição</th>
+                                <th class="p-3">Categoria</th>
+                                <th class="p-3 text-center">Qtd</th>
+                                <th class="p-3">P. Custo</th>
+                                <th class="p-3">P. Venda</th>
+                                <th class="p-3">Margem (R$)</th>
+                                <th class="p-3">Fornecedor</th>
+                                <th class="p-3">Boleto / Status</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-estoque-body" class="divide-y divide-slate-100 text-slate-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 4: CLIENTES -->
+        <section id="tab-clientes" class="tab-content hidden p-5 overflow-y-auto flex-1 custom-scrollbar space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Cadastro de Clientes</h2>
+                    <p class="text-xs text-slate-500">Gerencie contatos e dados de clientes.</p>
+                </div>
+                <button onclick="openModalCliente()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold text-xs shadow-md transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Cadastrar Cliente
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Nome do Cliente</th>
+                                <th class="p-3">Telefone</th>
+                                <th class="p-3">Endereço</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-clientes-body" class="divide-y divide-slate-100 text-slate-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL / JANELA DO PDV -->
+    <div id="modal-pdv" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-2 sm:p-3">
+        <div class="bg-white rounded-2xl max-w-7xl w-full h-[94vh] shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
+            
+            <button onclick="closeModal('modal-pdv')" class="absolute top-3 right-3 z-30 w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- LADO ESQUERDO: CATÁLOGO EXPANDIDO -->
+            <div class="flex-[2] p-4 flex flex-col overflow-y-auto space-y-3 custom-scrollbar border-r border-slate-200 bg-slate-50/50">
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch justify-between pr-8">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="pdv-search" oninput="renderPDVProducts()" placeholder="Buscar produto no catálogo..." class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <select id="pdv-filter-category" onchange="renderPDVProducts()" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todas as Categorias</option>
+                        <option value="Perfume">Perfumes</option>
+                        <option value="Hidratante">Hidratantes</option>
+                        <option value="Maquiagem">Maquiagens</option>
+                        <option value="Kits">Kits</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Catálogo de Pronta Entrega</h3>
+                
+                <div id="pdv-products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                </div>
+            </div>
+
+            <!-- LADO DIREITO: CARRY COMPACTO (W-80) -->
+            <div class="w-full md:w-80 bg-white flex flex-col justify-between shadow-inner shrink-0">
+                <div class="p-3.5 border-b border-slate-100 space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-slate-900 text-sm" id="cart-item-count">0 itens</h3>
+                        <div class="flex items-center gap-1 text-slate-700 text-xs font-medium">
+                            <i class="fa-solid fa-user-circle text-slate-400 text-sm"></i>
+                            <select id="cart-cliente-select" class="border-none bg-transparent font-bold text-xs text-slate-800 focus:outline-none cursor-pointer max-w-[120px]">
+                                <option value="">Cliente Avulso</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[9px] uppercase font-bold text-slate-400">Distribuidora</label>
+                            <select id="cart-distribuidora" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1 text-xs text-slate-700 font-medium">
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase font-bold text-slate-400">Pagamento</label>
+                            <select id="cart-status-pagamento" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1 text-xs font-semibold">
+                                <option value="Pago" class="text-emerald-600">Pago</option>
+                                <option value="A Prazo" class="text-amber-600">A Prazo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cart-items-container" class="flex-1 p-3 overflow-y-auto space-y-2 custom-scrollbar">
+                    <p class="text-center text-slate-400 text-xs py-10">Nenhum item selecionado</p>
+                </div>
+
+                <div class="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2.5">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-xs font-medium">Total:</span>
+                        <span class="text-xl font-black text-slate-900" id="cart-total-value">R$ 0,00</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="limparCarrinho()" class="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition-colors">
+                            Limpar
+                        </button>
+                        <button onclick="finalizarVenda()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-check"></i> Finalizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ESTOQUE -->
+    <div id="modal-estoque" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-900 text-base" id="modal-estoque-title">Registrar Item no Estoque</h3>
+                <button onclick="closeModal('modal-estoque')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="form-estoque" onsubmit="salvarItemEstoque(event)" class="space-y-2.5">
+                <input type="hidden" id="est-doc-id">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="sm:col-span-2">
+                        <label class="text-[11px] font-semibold text-slate-600">Descrição do Produto*</label>
+                        <input type="text" id="est-descricao" required class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Quantidade*</label>
+                        <input type="number" id="est-quantidade" required min="1" value="1" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Categoria</label>
+                        <select id="est-categoria" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                            <option value="Perfume">Perfumes</option>
+                            <option value="Hidratante">Hidratantes</option>
+                            <option value="Maquiagem">Maquiagens</option>
+                            <option value="Kits">Kits</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Preço Custo (R$)*</label>
+                        <input type="number" step="0.01" id="est-custo" required class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Preço Venda (R$)*</label>
+                        <input type="number" step="0.01" id="est-venda" required class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Fornecedor / Distribuidor</label>
+                        <input type="text" id="est-fornecedor" placeholder="Ex: Natura, Avon..." class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Status Boleto</label>
+                        <select id="est-status-boleto" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                            <option value="Pago">Pago</option>
+                            <option value="Pendente">Pendente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-estoque')" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">Cancelar</button>
+                    <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md">Salvar na Nuvem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CLIENTE -->
+    <div id="modal-cliente" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-900 text-base" id="modal-cliente-title">Cadastrar Cliente</h3>
+                <button onclick="closeModal('modal-cliente')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="form-cliente" onsubmit="salvarCliente(event)" class="space-y-2.5">
+                <input type="hidden" id="cli-doc-id">
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-600">Nome Completo*</label>
+                    <input type="text" id="cli-nome" required class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-600">Telefone</label>
+                    <input type="text" id="cli-telefone" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-600">Endereço</label>
+                    <input type="text" id="cli-endereco" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-cliente')" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">Cancelar</button>
+                    <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md">Salvar na Nuvem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIREBASE SDKs (MÓDULOS) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // =========================================================
+        // COLE SUAS CHAVES DO FIREBASE AQUI:
+        // =========================================================
+        const firebaseConfig = {
+  apiKey: "AIzaSyCASY2sunWDXrN3BTqCrbGzRmJULMpJYXw",
+  authDomain: "emporionefertite.firebaseapp.com",
+  projectId: "emporionefertite",
+  storageBucket: "emporionefertite.firebasestorage.app",
+  messagingSenderId: "404184039733",
+  appId: "1:404184039733:web:0d83e10b16fd28d41e0c7c",
+  measurementId: "G-MY1JGN1N00"
+};
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Referências das Coleções
+        const estoqueCol = collection(db, "estoque");
+        const clientesCol = collection(db, "clientes");
+        const vendasCol = collection(db, "vendas");
+
+        // Variáveis Locais em Memória
+        window.dbEstoque = [];
+        window.dbClientes = [];
+        window.dbVendas = [];
+        window.carrinho = [];
+
+        // ESCUTADORES EM TEMPO REAL (SINCRONIZAÇÃO INSTANTÂNEA)
+        onSnapshot(estoqueCol, (snapshot) => {
+            window.dbEstoque = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+            refreshCurrentTab();
+        });
+
+        onSnapshot(clientesCol, (snapshot) => {
+            window.dbClientes = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+            refreshCurrentTab();
+        });
+
+        onSnapshot(vendasCol, (snapshot) => {
+            window.dbVendas = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+            window.dbVendas.sort((a,b) => b.id - a.id);
+            refreshCurrentTab();
+        });
+
+        function refreshCurrentTab() {
+            const activeTab = document.querySelector('.tab-content:not(.hidden)')?.id;
+            if(activeTab === 'tab-painel') window.updateDashboard();
+            if(activeTab === 'tab-vendas') window.renderTabelaVendas();
+            if(activeTab === 'tab-estoque') window.renderTabelaEstoque();
+            if(activeTab === 'tab-clientes') window.renderTabelaClientes();
+        }
+
+        // FUNÇÕES DE AÇÃO FIREBASE (EXPORTADAS PARA O ESCOPO GLOBAL)
+        window.salvarItemEstoque = async function(e) {
+            e.preventDefault();
+            const docId = document.getElementById('est-doc-id').value;
+            const itemData = {
+                id: Math.floor(100 + Math.random() * 900),
+                descricao: document.getElementById('est-descricao').value,
+                quantidade: parseInt(document.getElementById('est-quantidade').value),
+                categoria: document.getElementById('est-categoria').value,
+                custo: parseFloat(document.getElementById('est-custo').value),
+                venda: parseFloat(document.getElementById('est-venda').value),
+                fornecedor: document.getElementById('est-fornecedor').value,
+                statusBoleto: document.getElementById('est-status-boleto').value,
+                dataEntrada: new Date().toISOString().split('T')[0]
+            };
+
+            if(docId) {
+                delete itemData.id;
+                await updateDoc(doc(db, "estoque", docId), itemData);
+            } else {
+                await addDoc(estoqueCol, itemData);
+            }
+            window.closeModal('modal-estoque');
+        };
+
+        window.excluirItemEstoque = async function(docId) {
+            if(confirm('Deseja excluir este produto da nuvem?')) {
+                await deleteDoc(doc(db, "estoque", docId));
+            }
+        };
+
+        window.salvarCliente = async function(e) {
+            e.preventDefault();
+            const docId = document.getElementById('cli-doc-id').value;
+            const clienteData = {
+                id: window.dbClientes.length + 1,
+                nome: document.getElementById('cli-nome').value,
+                telefone: document.getElementById('cli-telefone').value,
+                endereco: document.getElementById('cli-endereco').value
+            };
+
+            if(docId) {
+                delete clienteData.id;
+                await updateDoc(doc(db, "clientes", docId), clienteData);
+            } else {
+                await addDoc(clientesCol, clienteData);
+            }
+            window.closeModal('modal-cliente');
+        };
+
+        window.excluirCliente = async function(docId) {
+            if(confirm('Excluir este cliente?')) {
+                await deleteDoc(doc(db, "clientes", docId));
+            }
+        };
+
+        window.finalizarVenda = async function() {
+            if(window.carrinho.length === 0) {
+                alert('Adicione produtos ao carrinho.');
+                return;
+            }
+
+            const cliente = document.getElementById('cart-cliente-select').value || 'Cliente Avulso';
+            const distribuidora = document.getElementById('cart-distribuidora').value || 'Geral';
+            const statusPagamento = document.getElementById('cart-status-pagamento').value;
+
+            const totalValor = window.carrinho.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+            const totalQtd = window.carrinho.reduce((acc, item) => acc + item.quantidade, 0);
+
+            const novaVenda = {
+                id: Math.floor(1000 + Math.random() * 9000),
+                data: new Date().toISOString().split('T')[0],
+                distribuidor: distribuidora,
+                cliente: cliente,
+                valor: totalValor,
+                quantidadeItens: totalQtd,
+                statusPagamento: statusPagamento,
+                itens: [...window.carrinho]
+            };
+
+            // Dar baixa no estoque na nuvem
+            for(let itemCart of window.carrinho) {
+                const prod = window.dbEstoque.find(p => p.docId === itemCart.docId);
+                if(prod) {
+                    const novaQtd = Math.max(0, prod.quantidade - itemCart.quantidade);
+                    await updateDoc(doc(db, "estoque", prod.docId), { quantidade: novaQtd });
+                }
+            }
+
+            await addDoc(vendasCol, novaVenda);
+            window.closeModal('modal-pdv');
+            window.gerarPDFVenda(novaVenda);
+            alert('Venda registrada e sincronizada com sucesso!');
+        };
+
+        window.excluirVenda = async function(docId) {
+            if(confirm('Excluir esta venda? Os produtos serão estornados ao estoque na nuvem.')) {
+                const venda = window.dbVendas.find(v => v.docId === docId);
+                
+                if(venda && venda.itens) {
+                    for(let itemVendido of venda.itens) {
+                        const prod = window.dbEstoque.find(p => p.docId === itemVendido.docId);
+                        if(prod) {
+                            await updateDoc(doc(db, "estoque", prod.docId), { 
+                                quantidade: prod.quantidade + itemVendido.quantidade 
+                            });
+                        }
+                    }
+                }
+
+                await deleteDoc(doc(db, "vendas", docId));
+                alert('Venda removida e estoque ajustado.');
+            }
+        };
+
+        window.alterarStatusPagamentoVenda = async function(docId, novoStatus) {
+            await updateDoc(doc(db, "vendas", docId), { statusPagamento: novoStatus });
+        };
+    </script>
+
+    <!-- INTERFACE E LÓGICA AUXILIAR -->
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-600');
+                btn.classList.add('text-slate-600');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-blue-50', 'text-blue-600');
+                activeBtn.classList.remove('text-slate-600');
+            }
+
+            if(tabName === 'painel') updateDashboard();
+            if(tabName === 'vendas') renderTabelaVendas();
+            if(tabName === 'estoque') renderTabelaEstoque();
+            if(tabName === 'clientes') renderTabelaClientes();
+        }
+
+        let chartFatInstance = null, chartCatInstance = null;
+        function updateDashboard() {
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
+            const totalFaturamento = (window.dbVendas || []).reduce((acc, v) => acc + (v.statusPagamento === 'Pago' ? v.valor : 0), 0);
+            
+            let patrimonioCusto = 0, potencialVenda = 0;
+            (window.dbEstoque || []).forEach(p => {
+                patrimonioCusto += (p.custo * p.quantidade);
+                potencialVenda += (p.venda * p.quantidade);
+            });
+
+            document.getElementById('card-faturamento').innerText = `R$ ${totalFaturamento.toFixed(2)}`;
+            document.getElementById('card-qtd-vendas').innerText = (window.dbVendas || []).length;
+            document.getElementById('card-lucro').innerText = `R$ ${(potencialVenda - patrimonioCusto).toFixed(2)}`;
+            document.getElementById('card-patrimonio').innerText = `R$ ${patrimonioCusto.toFixed(2)}`;
+            document.getElementById('card-pronta-entrega').innerText = `R$ ${potencialVenda.toFixed(2)}`;
+
+            renderCharts();
+        }
+
+        function renderCharts() {
+            const ctx1 = document.getElementById('chart-faturamento').getContext('2d');
+            const ctx2 = document.getElementById('chart-categorias').getContext('2d');
+
+            if(chartFatInstance) chartFatInstance.destroy();
+            if(chartCatInstance) chartCatInstance.destroy();
+
+            chartFatInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: ['Vendas Realizadas'], datasets: [{ label: 'Faturamento R$', data: [(window.dbVendas || []).reduce((a,b)=>a+b.valor,0)], backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const catMap = {};
+            (window.dbEstoque || []).forEach(p => { catMap[p.categoria] = (catMap[p.categoria] || 0) + p.quantidade; });
+
+            chartCatInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: Object.keys(catMap).length ? Object.keys(catMap) : ['Sem dados'], datasets: [{ data: Object.values(catMap).length ? Object.values(catMap) : [1], backgroundColor: ['#a855f7', '#ec4899', '#3b82f6', '#f59e0b', '#10b981'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderTabelaVendas() {
+            const tbody = document.getElementById('table-vendas-body');
+            const search = document.getElementById('filter-venda-search').value.toLowerCase();
+            const filterData = document.getElementById('filter-venda-data').value;
+            const filterStatus = document.getElementById('filter-venda-status').value;
+
+            tbody.innerHTML = '';
+
+            const VendasFiltradas = (window.dbVendas || []).filter(v => {
+                const matchSearch = v.cliente.toLowerCase().includes(search) || v.distribuidor.toLowerCase().includes(search) || v.id.toString().includes(search);
+                const matchData = filterData ? v.data === filterData : true;
+                const matchStatus = filterStatus ? v.statusPagamento === filterStatus : true;
+                return matchSearch && matchData && matchStatus;
+            });
+
+            if(VendasFiltradas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">Nenhuma venda salva na nuvem.</td></tr>`;
+                return;
+            }
+
+            VendasFiltradas.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-400">#${v.id}</td>
+                    <td class="p-3">${v.data}</td>
+                    <td class="p-3 font-medium">${v.distribuidor}</td>
+                    <td class="p-3 font-bold text-slate-800">${v.cliente}</td>
+                    <td class="p-3 text-center">${v.quantidadeItens}</td>
+                    <td class="p-3 font-bold">R$ ${v.valor.toFixed(2)}</td>
+                    <td class="p-3">
+                        <select onchange="alterarStatusPagamentoVenda('${v.docId}', this.value)" class="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs font-semibold ${v.statusPagamento === 'Pago' ? 'text-emerald-600' : 'text-amber-600'}">
+                            <option value="Pago" ${v.statusPagamento === 'Pago' ? 'selected' : ''}>Pago</option>
+                            <option value="A Prazo" ${v.statusPagamento === 'A Prazo' ? 'selected' : ''}>A Prazo</option>
+                        </select>
+                    </td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick='gerarPDFVenda(${JSON.stringify(v)})' class="p-1.5 text-purple-600 hover:bg-purple-50 rounded" title="Imprimir PDF"><i class="fa-solid fa-file-pdf"></i></button>
+                        <button onclick="excluirVenda('${v.docId}')" class="p-1.5 text-red-500 hover:bg-red-50 rounded" title="Excluir Venda e Devolver Produtos ao Estoque"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openModalPDV() {
+            window.carrinho = [];
+            renderCarrinho();
+            
+            const cliSelect = document.getElementById('cart-cliente-select');
+            cliSelect.innerHTML = `<option value="">Cliente Avulso</option>`;
+            (window.dbClientes || []).forEach(c => { cliSelect.innerHTML += `<option value="${c.nome}">${c.nome}</option>`; });
+
+            const distSelect = document.getElementById('cart-distribuidora');
+            distSelect.innerHTML = '';
+            
+            const distribuidoresUnicos = [...new Set((window.dbEstoque || []).map(p => p.fornecedor).filter(f => f && f.trim() !== ''))];
+            
+            if(distribuidoresUnicos.length === 0) {
+                distSelect.innerHTML = `<option value="Geral">Geral</option>`;
+            } else {
+                distribuidoresUnicos.forEach(dist => {
+                    distSelect.innerHTML += `<option value="${dist}">${dist}</option>`;
+                });
+            }
+
+            renderPDVProducts();
+            document.getElementById('modal-pdv').classList.remove('hidden');
+        }
+
+        function renderPDVProducts() {
+            const grid = document.getElementById('pdv-products-grid');
+            const search = document.getElementById('pdv-search').value.toLowerCase();
+            const catFilter = document.getElementById('pdv-filter-category').value;
+
+            grid.innerHTML = '';
+
+            const produtosFiltrados = (window.dbEstoque || []).filter(p => {
+                const matchName = p.descricao.toLowerCase().includes(search) || (p.fornecedor && p.fornecedor.toLowerCase().includes(search));
+                const matchCat = catFilter ? p.categoria === catFilter : true;
+                return matchName && matchCat && p.quantidade > 0;
+            });
+
+            if(produtosFiltrados.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-slate-400 text-xs py-10">Nenhum produto disponível no estoque.</p>`;
+                return;
+            }
+
+            produtosFiltrados.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "product-card bg-white p-3 rounded-xl border border-slate-200 transition-all flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-[8px] font-bold uppercase text-blue-600 bg-blue-50 px-1 py-0.5 rounded">${p.categoria}</span>
+                            <span class="text-[10px] text-slate-400 font-semibold">Qtd: ${p.quantidade}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-xs leading-tight mb-1 line-clamp-2">${p.descricao}</h4>
+                        <p class="text-[9px] text-slate-400 mb-2">${p.fornecedor || 'Diversos'}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <span class="font-black text-slate-900 text-xs">R$ ${p.venda.toFixed(2)}</span>
+                        <button onclick="adicionarAoCarrinho('${p.docId}')" class="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function adicionarAoCarrinho(docId) {
+            const produto = window.dbEstoque.find(p => p.docId === docId);
+            if(!produto) return;
+
+            const itemExistente = window.carrinho.find(item => item.docId === produto.docId);
+
+            if(itemExistente) {
+                if(itemExistente.quantidade < produto.quantidade) {
+                    itemExistente.quantidade++;
+                } else {
+                    alert('Quantidade máxima em estoque atingida.');
+                    return;
+                }
+            } else {
+                window.carrinho.push({
+                    docId: produto.docId,
+                    descricao: produto.descricao,
+                    preco: produto.venda,
+                    quantidade: 1
+                });
+            }
+            renderCarrinho();
+        }
+
+        function renderCarrinho() {
+            const container = document.getElementById('cart-items-container');
+            container.innerHTML = '';
+
+            let totalVal = 0, totalQtd = 0;
+
+            if(window.carrinho.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 text-xs py-10">Nenhum item selecionado</p>`;
+            } else {
+                window.carrinho.forEach((item, index) => {
+                    const subtotal = item.preco * item.quantidade;
+                    totalVal += subtotal;
+                    totalQtd += item.quantidade;
+
+                    const row = document.createElement('div');
+                    row.className = "flex justify-between items-center border-b border-slate-100 pb-1.5";
+                    row.innerHTML = `
+                        <div class="flex-1 pr-2">
+                            <h5 class="font-bold text-slate-800 text-xs truncate">${item.descricao}</h5>
+                            <span class="text-[10px] text-slate-400">R$ ${item.preco.toFixed(2)} x ${item.quantidade}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-slate-900 text-xs">R$ ${subtotal.toFixed(2)}</span>
+                            <button onclick="removerDoCarrinho(${index})" class="text-slate-300 hover:text-red-500 text-xs">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+
+            document.getElementById('cart-item-count').innerText = `${totalQtd} itens`;
+            document.getElementById('cart-total-value').innerText = `R$ ${totalVal.toFixed(2)}`;
+        }
+
+        function removerDoCarrinho(index) {
+            window.carrinho.splice(index, 1);
+            renderCarrinho();
+        }
+
+        function limparCarrinho() {
+            window.carrinho = [];
+            renderCarrinho();
+        }
+
+        function gerarPDFVenda(venda) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: [80, 150] });
+
+            doc.setFontSize(12);
+            doc.text("EMPÓRIO NEFERTITE", 40, 10, { align: "center" });
+            doc.setFontSize(8);
+            doc.text("Comprovante de Venda", 40, 15, { align: "center" });
+            doc.text("--------------------------------------------------", 40, 18, { align: "center" });
+
+            doc.text(`ID Venda: #${venda.id}`, 5, 23);
+            doc.text(`Data: ${venda.data}`, 5, 27);
+            doc.text(`Cliente: ${venda.cliente}`, 5, 31);
+            doc.text(`Distribuidora: ${venda.distribuidor}`, 5, 35);
+            doc.text(`Status: ${venda.statusPagamento}`, 5, 39);
+
+            let y = 46;
+            doc.text("Itens:", 5, y);
+            y += 4;
+
+            venda.itens.forEach(item => {
+                doc.text(`${item.quantidade}x ${item.descricao.substring(0, 18)}`, 5, y);
+                doc.text(`R$ ${(item.preco * item.quantidade).toFixed(2)}`, 75, y, { align: "right" });
+                y += 4;
+            });
+
+            doc.text("--------------------------------------------------", 40, y, { align: "center" });
+            y += 5;
+            doc.setFontSize(10);
+            doc.text(`TOTAL: R$ ${venda.valor.toFixed(2)}`, 75, y, { align: "right" });
+
+            doc.save(`Venda_${venda.id}_Nefertite.pdf`);
+        }
+
+        function renderTabelaEstoque() {
+            const tbody = document.getElementById('table-estoque-body');
+            tbody.innerHTML = '';
+
+            if((window.dbEstoque || []).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400">Nenhum produto cadastrado no estoque.</td></tr>`;
+                return;
+            }
+
+            window.dbEstoque.forEach(p => {
+                const margem = p.venda - p.custo;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-400">#${p.id || '---'}</td>
+                    <td class="p-3 font-bold text-slate-800">${p.descricao}</td>
+                    <td class="p-3"><span class="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold text-slate-600">${p.categoria}</span></td>
+                    <td class="p-3 text-center font-bold">${p.quantidade}</td>
+                    <td class="p-3">R$ ${p.custo.toFixed(2)}</td>
+                    <td class="p-3 font-bold">R$ ${p.venda.toFixed(2)}</td>
+                    <td class="p-3 text-emerald-600 font-bold">+R$ ${margem.toFixed(2)}</td>
+                    <td class="p-3 font-medium text-slate-700">${p.fornecedor || '-'}</td>
+                    <td class="p-3"><span class="text-[10px] font-bold ${p.statusBoleto === 'Pago' ? 'text-emerald-600' : 'text-amber-600'}">${p.statusBoleto}</span></td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="editarItemEstoque('${p.docId}')" class="p-1 text-blue-600 hover:bg-blue-50 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="excluirItemEstoque('${p.docId}')" class="p-1 text-red-500 hover:bg-red-50 rounded"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openModalEstoque() {
+            document.getElementById('form-estoque').reset();
+            document.getElementById('est-doc-id').value = '';
+            document.getElementById('modal-estoque-title').innerText = 'Registrar Item no Estoque';
+            document.getElementById('modal-estoque').classList.remove('hidden');
+        }
+
+        function editarItemEstoque(docId) {
+            const p = window.dbEstoque.find(item => item.docId === docId);
+            if(!p) return;
+
+            document.getElementById('est-doc-id').value = p.docId;
+            document.getElementById('est-descricao').value = p.descricao;
+            document.getElementById('est-quantidade').value = p.quantidade;
+            document.getElementById('est-categoria').value = p.categoria;
+            document.getElementById('est-custo').value = p.custo;
+            document.getElementById('est-venda').value = p.venda;
+            document.getElementById('est-fornecedor').value = p.fornecedor;
+            document.getElementById('est-status-boleto').value = p.statusBoleto;
+
+            document.getElementById('modal-estoque-title').innerText = 'Editar Item do Estoque';
+            document.getElementById('modal-estoque').classList.remove('hidden');
+        }
+
+        function renderTabelaClientes() {
+            const tbody = document.getElementById('table-clientes-body');
+            tbody.innerHTML = '';
+
+            if((window.dbClientes || []).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">Nenhum cliente cadastrado.</td></tr>`;
+                return;
+            }
+
+            window.dbClientes.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-400">#${c.id || '---'}</td>
+                    <td class="p-3 font-bold text-slate-800">${c.nome}</td>
+                    <td class="p-3">${c.telefone || '-'}</td>
+                    <td class="p-3">${c.endereco || '-'}</td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="editarCliente('${c.docId}')" class="p-1 text-blue-600 hover:bg-blue-50 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="excluirCliente('${c.docId}')" class="p-1 text-red-500 hover:bg-red-50 rounded"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openModalCliente() {
+            document.getElementById('form-cliente').reset();
+            document.getElementById('cli-doc-id').value = '';
+            document.getElementById('modal-cliente-title').innerText = 'Cadastrar Cliente';
+            document.getElementById('modal-cliente').classList.remove('hidden');
+        }
+
+        function editarCliente(docId) {
+            const c = window.dbClientes.find(item => item.docId === docId);
+            if(!c) return;
+
+            document.getElementById('cli-doc-id').value = c.docId;
+            document.getElementById('cli-nome').value = c.nome;
+            document.getElementById('cli-telefone').value = c.telefone;
+            document.getElementById('cli-endereco').value = c.endereco;
+
+            document.getElementById('modal-cliente-title').innerText = 'Editar Cliente';
+            document.getElementById('modal-cliente').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        window.onload = () => {
+            switchTab('painel');
+        };
+    </script>
+</body>
+</html>
