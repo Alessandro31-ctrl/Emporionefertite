@@ -157,8 +157,8 @@ signup-link a {
 }
 .bottom-text {
     position: fixed;
-    bottom: 120px;
-    left: 180px;
+    bottom: 140px;
+    left: 270px;
     height: 0;
     text-align: center;
     display:flex;
