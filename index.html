@@ -427,13 +427,13 @@
         // COLE SUAS CHAVES DO FIREBASE AQUI:
         // =========================================================
         const firebaseConfig = {
-  apiKey: "AIzaSyCASY2sunWDXrN3BTqCrbGzRmJULMpJYXw",
-  authDomain: "emporionefertite.firebaseapp.com",
-  projectId: "emporionefertite",
-  storageBucket: "emporionefertite.firebasestorage.app",
-  messagingSenderId: "404184039733",
-  appId: "1:404184039733:web:0d83e10b16fd28d41e0c7c",
-  measurementId: "G-MY1JGN1N00"
+         apiKey: "AIzaSyCASY2sunWDXrN3BTqCrbGzRmJULMpJYXw",
+         authDomain: "emporionefertite.firebaseapp.com",
+         projectId: "emporionefertite",
+         storageBucket: "emporionefertite.firebasestorage.app",
+         messagingSenderId: "404184039733",
+         appId: "1:404184039733:web:0d83e10b16fd28d41e0c7c",
+         measurementId: "G-MY1JGN1N00"
 };
 
         // Inicializar Firebase
@@ -594,6 +594,25 @@
         window.alterarStatusPagamentoVenda = async function(docId, novoStatus) {
             await updateDoc(doc(db, "vendas", docId), { statusPagamento: novoStatus });
         };
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    // Usuário não está logado, redireciona para a tela de login
+    window.location.href = "cartão.html";
+  } else {
+    console.log("Usuário autenticado:", user.email);
+  }
+});
+
+// Exemplo de botão de sair (Logout)
+document.getElementById('logout-btn')?.addEventListener('click', () => {
+  signOut(auth).then(() => {
+    window.location.href = "cartão.html";
+  });
+});
     </script>
 
     <!-- INTERFACE E LÓGICA AUXILIAR -->

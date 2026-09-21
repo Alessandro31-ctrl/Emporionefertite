@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Plataforma</title>
+  <link rel="stylesheet" href="cartão.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <h2>Login</h2>
+      <form id="login-form">
+        <div class="input-box">
+          <input id="email-input" required type="email"/>
+          <label>Email</label>
+        </div>
+        <div class="input-box">
+          <input id="password-input" required type="password"/>
+          <label>Senha</label>
+        </div>
+        <div class="forgot-pass">
+          <a href="#" id="forgot-pass-btn">Esqueceu sua Senha?</a>
+        </div>
+        <button class="btn" type="submit">Login</button>
+      </form>
+    </div>
+
+    <!-- Animação do anel -->
+    <span style="--i:0;"></span><span style="--i:1;"></span><span style="--i:2;"></span><span style="--i:3;"></span><span style="--i:4;"></span>
+    <span style="--i:5;"></span><span style="--i:6;"></span><span style="--i:7;"></span><span style="--i:8;"></span><span style="--i:9;"></span>
+    <span style="--i:10;"></span><span style="--i:11;"></span><span style="--i:12;"></span><span style="--i:13;"></span><span style="--i:14;"></span>
+    <span style="--i:15;"></span><span style="--i:16;"></span><span style="--i:17;"></span><span style="--i:18;"></span><span style="--i:19;"></span>
+    <span style="--i:20;"></span><span style="--i:21;"></span><span style="--i:22;"></span><span style="--i:23;"></span><span style="--i:24;"></span>
+    <span style="--i:25;"></span><span style="--i:26;"></span><span style="--i:27;"></span><span style="--i:28;"></span><span style="--i:29;"></span>
+    <span style="--i:30;"></span><span style="--i:31;"></span><span style="--i:32;"></span><span style="--i:33;"></span><span style="--i:34;"></span>
+    <span style="--i:35;"></span><span style="--i:36;"></span><span style="--i:37;"></span><span style="--i:38;"></span><span style="--i:39;"></span>
+    <span style="--i:40;"></span><span style="--i:41;"></span><span style="--i:42;"></span><span style="--i:43;"></span><span style="--i:44;"></span>
+    <span style="--i:45;"></span><span style="--i:46;"></span><span style="--i:47;"></span><span style="--i:48;"></span><span style="--i:49;"></span>
+  </div>
+
+  <div class="bottom-text">
+    <span class="brand"><span class="accent">TONY</span> Criações</span>
+    <span class="follow">Programação Aprendida!</span>
+  </div>
+
+  <!-- Módulos do Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // Substiua com as credenciais do seu projeto Firebase
+    const firebaseConfig = {
+  apiKey: "AIzaSyCASY2sunWDXrN3BTqCrbGzRmJULMpJYXw",
+  authDomain: "emporionefertite.firebaseapp.com",
+  projectId: "emporionefertite",
+  storageBucket: "emporionefertite.firebasestorage.app",
+  messagingSenderId: "404184039733",
+  appId: "1:404184039733:web:0d83e10b16fd28d41e0c7c",
+  measurementId: "G-MY1JGN1N00"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginForm = document.getElementById('login-form');
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password-input');
+    const forgotPassBtn = document.getElementById('forgot-pass-btn');
+
+    // Lógica de Login
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // Redireciona para o painel principal do sistema após autenticar
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        alert("Falha ao entrar: " + error.message);
+      }
+    });
+
+    // Lógica para redefinição de senha
+    forgotPassBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = emailInput.value;
+      if (!email) {
+        alert("Preencha o campo de e-mail antes de solicitar a redefinição de senha.");
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("E-mail de redefinição enviado com sucesso!");
+      } catch (error) {
+        alert("Erro ao enviar e-mail: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
