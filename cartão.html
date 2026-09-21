@@ -77,7 +77,7 @@
       try {
         await signInWithEmailAndPassword(auth, email, password);
         // Redireciona para o painel principal do sistema após autenticar
-        window.location.href = "dashboard.html";
+        window.location.href = "index.html";
       } catch (error) {
         alert("Falha ao entrar: " + error.message);
       }
