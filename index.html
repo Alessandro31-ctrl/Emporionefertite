@@ -79,18 +79,20 @@
                 </button>
             </nav>
         </div>
-
-        <div class="p-2 border-t border-slate-100 bg-slate-50/50">
-            <div class="flex items-center gap-2 overflow-hidden">
-                <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-[10px] text-slate-600 shrink-0">
-                 EN
-                </div>
-                <div class="truncate brand-text whitespace-nowrap">
-                 <p class="text-[10px] font-semibold text-slate-800 truncate">Empório Nefertite</p>
-                 <p class="text-[8px] text-slate-500">Sincronizado</p>
-                </div>
-            </div>
+        <div class="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+    <div class="flex items-center gap-2 overflow-hidden">
+        <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-[10px] text-slate-600 shrink-0">
+            EN
         </div>
+        <div class="truncate brand-text whitespace-nowrap">
+            <p class="text-[10px] font-semibold text-slate-800 truncate">Empório Nefertite</p>
+            <p class="text-[8px] text-slate-500">Sincronizado</p>
+        </div>
+    </div>
+    <button onclick="fazerLogout()" title="Sair do Sistema" class="text-red-500 hover:text-red-700 p-1">
+        <i class="fa-solid fa-right-from-bracket text-xs"></i>
+    </button>
+</div>
     </aside>
 
     <!-- ÁREA DE CONTEÚDO -->
@@ -702,29 +704,48 @@
     </div>
 
     <!-- FIREBASE SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-         getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { 
+      getAuth, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = {
-         apiKey: "AIzaSyCASY2sunWDXrN3BTqCrbGzRmJULMpJYXw",
-         authDomain: "emporionefertite.firebaseapp.com",
-         projectId: "emporionefertite",
-         storageBucket: "emporionefertite.firebasestorage.app",
-         messagingSenderId: "404184039733",
-         appId: "1:404184039733:web:0d83e10b16fd28d41e0c7c",
-         measurementId: "G-MY1JGN1N00"
-        };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCASY2sunWDXrN3BTqCrbGzRmJULMpJYXw",
+      authDomain: "emporionefertite.firebaseapp.com",
+      projectId: "emporionefertite",
+      storageBucket: "emporionefertite.firebasestorage.app",
+      messagingSenderId: "404184039733",
+      appId: "1:404184039733:web:0d83e10b16fd28d41e0c7c",
+      measurementId: "G-MY1JGN1N00"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        const estoqueCol = collection(db, "estoque");
-        const clientesCol = collection(db, "clientes");
-        const vendasCol = collection(db, "vendas");
-        const categoriasCol = collection(db, "categorias");
+    // --- VERIFICAÇÃO DE AUTENTICAÇÃO OBRIGATÓRIA ---
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // Se não estiver logado, redireciona imediatamente para a tela de login
+        window.location.href = "cartão.html";
+      }
+    });
+
+    // Função de Logout para o usuário poder sair
+    window.fazerLogout = function() {
+      signOut(auth).then(() => {
+        window.location.href = "cartão.html";
+      });
+    };
+
+    const estoqueCol = collection(db, "estoque");
+    const clientesCol = collection(db, "clientes");
+    const vendasCol = collection(db, "vendas");
+    const categoriasCol = collection(db, "categorias");
 
         window.dbEstoque = [];
         window.dbClientes = [];
